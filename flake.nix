@@ -5,7 +5,13 @@
     let
       supportedSystems = [ "x86_64-linux" "x86_64-darwin" "aarch64-linux" "aarch64-darwin" ];
       forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
-      pkgs = forAllSystems (system: nixpkgs.legacyPackages.${system});
+      pkgs = forAllSystems (system: import nixpkgs {
+        inherit system;
+        config = {
+          allowUnfree = true;
+          cudaSupport = true;
+        };
+      });
       PWD = builtins.getEnv "PWD";
       root = if PWD != "" then PWD else self;
       python-overrides = pyfinal: pyprev: {
@@ -20,32 +26,39 @@
         ruff = pyprev.ruff.override { preferWheel = true; };
         ruff-lsp = pyprev.ruff.override { preferWheel = true; };
       };
+      application = forAllSystems (system: pkgs.${system}.poetry2nix.mkPoetryApplication {
+        projectDir = self;
+        editablePackageSources = {
+          exchanged = "${root}/src";
+        };
+        python = pkgs.${system}.python310;
+        overrides = [ pkgs.${system}.poetry2nix.defaultPoetryOverrides python-overrides ];
+        extraPackages = ps: [ ps.torch-bin ];
+      });
+      env = forAllSystems (system: pkgs.${system}.poetry2nix.mkPoetryEnv {
+        projectDir = self;
+        editablePackageSources = {
+          exchanged = "${root}/src";
+        };
+        python = pkgs.${system}.python310;
+        overrides = [ pkgs.${system}.poetry2nix.defaultPoetryOverrides python-overrides ];
+        extraPackages = ps: [ ps.torch-bin ];
+      });
+
     in
     {
       packages = forAllSystems (system: {
-        default = pkgs.${system}.poetry2nix.mkPoetryApplication {
-          python = pkgs.${system}.python310;
-          projectDir = self;
-          overrides = [ pkgs.${system}.poetry2nix.defaultPoetryOverrides python-overrides ];
-          editablePackageSources = {
-            exchanged = "${root}/src";
-          };
-        };
+        default = application.${system};
       });
       legacyPackages = pkgs;
 
       devShells = forAllSystems (system: {
         default = pkgs.${system}.mkShellNoCC {
-          packages = with pkgs.${system}; [
-            (poetry2nix.mkPoetryEnv {
-              projectDir = self;
-              editablePackageSources = {
-                exchanged = "${root}/src";
-              };
-              python = pkgs.${system}.python310;
-              overrides = [ poetry2nix.defaultPoetryOverrides python-overrides ];
-            })
-            poetry
+          packages = [
+            env.${system}
+            pkgs.${system}.python310.pkgs.ruff-lsp
+            pkgs.${system}.pyright
+            pkgs.${system}.poetry
           ];
         };
       });

@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 
 def main():
-    print(np.array([1,2,3]))
+    print(torch.from_numpy(np.array([1,2,3])))

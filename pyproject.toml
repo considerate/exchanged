@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "exchanged"
+version = "0.1.0"
+description = ""
+authors = ["Viktor Kronvall <viktor.kronvall@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+numpy = "^1.25.0"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.0.275"
+ruff-lsp = "^0.0.35"
+maturin = "^1.1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

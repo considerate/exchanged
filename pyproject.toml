@@ -5,6 +5,9 @@ description = ""
 authors = ["Viktor Kronvall <viktor.kronvall@gmail.com>"]
 readme = "README.md"
 
+[tool.poetry.scripts]
+exchanged = "exchanged.main:main"
+
 [tool.poetry.dependencies]
 python = "^3.10"
 numpy = "^1.25.0"

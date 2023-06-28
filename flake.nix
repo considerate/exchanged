@@ -6,6 +6,8 @@
       supportedSystems = [ "x86_64-linux" "x86_64-darwin" "aarch64-linux" "aarch64-darwin" ];
       forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
       pkgs = forAllSystems (system: nixpkgs.legacyPackages.${system});
+      PWD = builtins.getEnv "PWD";
+      root = if PWD != "" then PWD else self;
       python-overrides = pyfinal: pyprev: {
         attrs = pyprev.attrs.overridePythonAttrs (old: {
           nativeBuildInputs = old.nativeBuildInputs ++ [
@@ -25,6 +27,9 @@
           python = pkgs.${system}.python310;
           projectDir = self;
           overrides = [ pkgs.${system}.poetry2nix.defaultPoetryOverrides python-overrides ];
+          editablePackageSources = {
+            exchanged = "${root}/src";
+          };
         };
       });
       legacyPackages = pkgs;
@@ -34,6 +39,9 @@
           packages = with pkgs.${system}; [
             (poetry2nix.mkPoetryEnv {
               projectDir = self;
+              editablePackageSources = {
+                exchanged = "${root}/src";
+              };
               python = pkgs.${system}.python310;
               overrides = [ poetry2nix.defaultPoetryOverrides python-overrides ];
             })

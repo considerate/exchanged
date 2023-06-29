@@ -43,35 +43,35 @@ def text_barchart(arr, low=0.0, high=1.0, rounding = round):
 
 
 def main():
-    #model_2 = Network()
-    #optimizer_2 = torch.optim.AdamW(model_2.parameters())
-    #model_state = model.state_dict()
-    #model_2.load_state_dict(model_state)
     steps = 10000
-    runs = 1000
+    runs = 10
     final = []
+    bias = 0.25
+    debug = False
     for run in range(runs):
         model = Network()
-        optimizer = torch.optim.SGD(model.parameters(), lr=1e-4)
-        sampled = []
+        optimizer = torch.optim.SGD(model.parameters(), lr=1e-2, momentum=0.9)
+        model_2 = Network()
+        optimizer_2 = torch.optim.SGD(model_2.parameters(), lr=1e-2, momentum=0.9)
+        model_2.load_state_dict(model.state_dict())
+        optimizer_2.load_state_dict(optimizer.state_dict())
         log_prob_sequence: list[float] = []
         probabilities = []
-        for step in range(steps):
+        flips = [ random () <= bias for _ in range(steps)]
+        for step, flip in enumerate(flips):
             optimizer.zero_grad()
             log_probs = model()
             probs = torch.exp(log_probs)
             probabilities.append(probs)
-            r = random()
-            if step % (steps // 100) == 0:
+            if debug and step % (len(flips) // 100) == 0:
                 print(f"{probs[0].item(): 3.3f} {probs[1].item(): 3.3f}")
-            if r <= probs[0]:
+            if flip:
                 index = 0
             else:
                 index = 1
             # negative log-likelihood loss
             loss = -log_probs[index]
             log_prob_sequence.append(log_probs[index])
-            sampled.append(index)
             loss.backward()
             optimizer.step()
         final.append(probabilities[-1][1].item())
@@ -85,5 +85,29 @@ def main():
         #         end = ' '
         #     print(f"{p:2.4f}", end=end)
         # print()
-        print(torch.sum(log_probs))
+        before = torch.sum(log_probs)
+        print(before)
+        log_prob_sequence: list[float] = []
+        probabilities = []
+        np.random.shuffle(flips)
+        for step, flip in enumerate(flips):
+            optimizer_2.zero_grad()
+            log_probs = model_2()
+            probs = torch.exp(log_probs)
+            probabilities.append(probs)
+            if debug and step % (steps // 100) == 0:
+                print(f"{probs[0].item(): 3.3f} {probs[1].item(): 3.3f}")
+            if flip:
+                index = 0
+            else:
+                index = 1
+            # negative log-likelihood loss
+            loss = -log_probs[index]
+            log_prob_sequence.append(log_probs[index])
+            loss.backward()
+            optimizer_2.step()
+        log_probs = torch.tensor(log_prob_sequence)
+        after = torch.sum(log_probs)
+        print(after)
+        print(after / before)
     # print(probabilities)

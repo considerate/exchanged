@@ -62,8 +62,8 @@ def main():
             probs = torch.exp(log_probs)
             probabilities.append(probs)
             r = random()
-            # if step % (steps // 100) == 0:
-            #     print(f"{probs[0].item(): 3.3f} {probs[1].item(): 3.3f}")
+            if step % (steps // 100) == 0:
+                print(f"{probs[0].item(): 3.3f} {probs[1].item(): 3.3f}")
             if r <= probs[0]:
                 index = 0
             else:
@@ -77,7 +77,7 @@ def main():
         final.append(probabilities[-1][1].item())
         hist, _ = np.histogram(final, range=(0,1), bins=20)
         print(text_barchart(hist, high=np.amax(hist)), run)
-        # log_probs = torch.tensor(log_prob_sequence)
+        log_probs = torch.tensor(log_prob_sequence)
         # for i, p in enumerate(torch.exp(log_probs).tolist()):
         #     if i % 10 == 0:
         #         end = '\n'
@@ -85,5 +85,5 @@ def main():
         #         end = ' '
         #     print(f"{p:2.4f}", end=end)
         # print()
-        # print(torch.sum(log_probs))
+        print(torch.sum(log_probs))
     # print(probabilities)

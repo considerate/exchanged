@@ -55,6 +55,9 @@ def main():
         optimizer_2 = torch.optim.SGD(model_2.parameters(), lr=1e-2, momentum=0.9)
         model_2.load_state_dict(model.state_dict())
         optimizer_2.load_state_dict(optimizer.state_dict())
+        if run == 0:
+            print(optimizer)
+            print(optimizer_2)
         log_prob_sequence: list[float] = []
         probabilities = []
         flips = [ random () <= bias for _ in range(steps)]

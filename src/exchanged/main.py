@@ -153,9 +153,9 @@ def main_network():
         head_probs = []
         for _ in range(10):
             lr=1e-2
-            model = Minimal()
+            model = Network()
             optimizer = torch.optim.SGD(model.parameters(), lr=lr)
-            model_2 = Minimal()
+            model_2 = Network()
             optimizer_2 = torch.optim.SGD(model_2.parameters(), lr=lr)
             model_2.load_state_dict(model.state_dict())
             optimizer_2.load_state_dict(optimizer.state_dict())
@@ -244,4 +244,5 @@ def main_network():
     # print(probabilities)
 
 def main():
+    #main_network()
     main_polya()
